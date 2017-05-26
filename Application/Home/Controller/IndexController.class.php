@@ -1,6 +1,8 @@
 <?php
 namespace Home\Controller;
 use Think\Controller;
+use Home\Model\WeixinModel;
+
 class IndexController extends Controller {
 	private $appId = 'wx97ff90f9f8af2b8d';
 	private $appSecret = 'd4624c36b6795d1d99dcf0547af5443d';
@@ -23,177 +25,60 @@ class IndexController extends Controller {
 			echo $echostr;
 			exit;
 		}else {
-			$this->reponseMsg();
+			$this->responseMsg();
 		}
     }
 
-    public function reponseMsg() {
-    	// 1.get post data(xml) from wechat
-    	// $postArr = $GLOBALS['HTTP_RAW_POST_DATA'];
-    	$postArr = file_get_contents("php://input");
-    	$tmpstr = $postArr;
-    	// 2.process message type ,and set return type and content
-    	/**
-		* <xml>
-			<ToUserName><![CDATA[toUser]]></ToUserName>
-			<FromUserName><![CDATA[FromUser]]></FromUserName>
-			<CreateTime>123456789</CreateTime>
-			<MsgType><![CDATA[event]]></MsgType>
-			<Event><![CDATA[subscribe]]></Event>
-			</xml>
-    	 */
-    	
-    	$postObj = simplexml_load_string($postArr);
-    	// $postObj->ToUserName = '';
-    	// $postObj->FromUserName = '';
-    	// $postObj->CreateTime = '';
-    	// $postObj->MsgType = '';
-    	// $postObj->MsgType = '';
-    	// $postObj->Event = '';
-    	
-    	// 3.check if the message is event message
-    	if (strtolower($postObj->MsgType) == 'event') {
-    		# if it is a subscribe event,return user success messages!
-    		if (strtolower($postObj->Event == 'subscribe')) {
-    			$toUser = $postObj->FromUserName;
-    			$fromUser = $postObj->ToUserName;
-    			$time = time();
-    			$msgType = 'text';
-    			// $content = 'Welcome to Our Baobao Family!';
-    			$content = 'PA:'.$postObj->ToUserName.'\n Openid:'.$postObj->FromUserName.'\n MsgType:'.$tmpstr;
+    public function responseMsg() {
 
-
-    			$template = "<xml>
-							<ToUserName><![CDATA[%s]]></ToUserName>
-							<FromUserName><![CDATA[%s]]></FromUserName>
-							<CreateTime>%s</CreateTime>
-							<MsgType><![CDATA[%s]]></MsgType>
-							<Content><![CDATA[%s]]></Content>
-							</xml>";
-				$info = sprintf($template,$toUser,$fromUser,$time,$msgType,$content);
-				echo $info;
-    		}
-    	}
-    	/*if (strtolower($postObj->MsgType)=='text') {
-    	}*/
-	    //user send a keuword "article",response an article with a image
-	    if (strtolower($postObj->MsgType)=='text' && trim($postObj->Content)=='article') {
-	    	$toUser = $postObj->FromUserName;
-	    	$fromUser = $postObj->ToUserName;
-	    	$time = time();
-	    	$msgType = 'news';
-
-	    	$data = [
-	    		[
-	    			'title'         => 'Baobao Zone',
-	    			'description'   => 'Baobao is the future',
-	    			'picurl'		=> 'https://b-ssl.duitang.com/uploads/item/201411/08/20141108201327_sCxZX.jpeg',
-	    			'url'			=> 'http://www.baidu.com'
-	    		],
-	    		[
-	    			'title'         => 'Zone',
-	    			'description'   => 'We Brought A Zoo',
-	    			'picurl'		=> 'https://b-ssl.duitang.com/uploads/item/201411/08/20141108201327_sCxZX.jpeg',
-	    			'url'			=> 'http://www.baidu.com'
-	    		],
-	    		[
-	    			'title'         => 'Miao',
-	    			'description'   => 'Miao',
-	    			'picurl'		=> 'https://b-ssl.duitang.com/uploads/item/201411/08/20141108201327_sCxZX.jpeg',
-	    			'url'			=> 'http://www.sina.com'
-	    		],
-	    		[
-	    			'title'         => 'Taobao',
-	    			'description'   => 'Sell right',
-	    			'picurl'		=> 'https://b-ssl.duitang.com/uploads/item/201411/08/20141108201327_sCxZX.jpeg',
-	    			'url'			=> 'http://www.taobao.com'
-	    		]
-	    	];
-	    	$template = "<xml>
-						<ToUserName><![CDATA[%s]]></ToUserName>
-						<FromUserName><![CDATA[%s]]></FromUserName>
-						<CreateTime>%s</CreateTime>
-						<MsgType><![CDATA[%s]]></MsgType>
-						<ArticleCount>".count($data)."</ArticleCount>
-						<Articles>";
-
-			foreach ($data as $val) {
-				$template .= "<item>
-							 <Title><![CDATA[".$val['title']."]]></Title> 
-							 <Description><![CDATA[".$val['description']."]]></Description>
-							 <PicUrl><![CDATA[".$val["picurl"]."]]></PicUrl>
-							 <Url><![CDATA[".$val['url']."]]></Url>
-							 </item>";
-			}
-			$template .= "</Articles>
-						 </xml>";
-			echo sprintf($template,$toUser,$fromUser,$time,$msgType);
-	    }else{
-
-    		switch ( trim($postObj->Content) ) {
-    			case 'baobao':
-    				$content = "Baobao is very cute";
-    				break;
-    			case 'tel':
-    				$content = "15245669853";
-    				break;
-    			case 'search':
-    				$content = "<a href='http://www.baidu.com'>search</a>";
-    				break;
-    			
-    			default:
-    				$content = "Welcome to the big family";
-    				break;
-    		}
-			$template = "<xml>
-						<ToUserName><![CDATA[%s]]></ToUserName>
-						<FromUserName><![CDATA[%s]]></FromUserName>
-						<CreateTime>%s</CreateTime>
-						<MsgType><![CDATA[%s]]></MsgType>
-						<Content><![CDATA[%s]]></Content>
-						</xml>";
-			$toUser = $postObj->FromUserName;
-			$fromUser = $postObj->ToUserName;
-			$time = time();
-			$msgType = 'text';
-			$info = sprintf($template,$toUser,$fromUser,$time,$msgType,$content);
-			echo $info;
-	    }
+    	$weixin = new WeixinModel();
+    	$weixin->responseMsg();
     }
 
-    function http_curl() {
-    	// get baidu.com
-    	// 1.init curl
+    function http_curl($url,$type='get',$res='json',$data='') {
     	$ch = curl_init();
-    	$url = 'http://www.baidu.com';
-    	// 2.config
+    	curl_setopt($ch,CURLOPT_URL,$url);
+    	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1); //return
+    	if ($type == 'post') {
+    		curl_setopt($ch, CURLOPT_POST, 1);
+    		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    	}
+    	// 3.get
+    	$output = curl_exec($ch);
+    	// 4.close
+    	curl_close($ch);
+    	if ($res == 'json') {
+    		if (curl_errno($ch)!=null) {
+    			return curl_errno($ch);
+    		}
+     		return json_decode($output,true);
+    	}
+    }
+
+    public function curl_qrcode($url) {
+    	$ch = curl_init();
     	curl_setopt($ch,CURLOPT_URL,$url);
     	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1); //return
     	// 3.get
     	$output = curl_exec($ch);
     	// 4.close
     	curl_close($ch);
-    	var_dump($output);
+		return $output;
     }
 
     function getWxAccessToken()	{
-    	// 1 url address
-    	$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$this->appId."&secret=".$this->appSecret;
-    	// 2 init
-    	$ch = curl_init();
-    	// 3 set params
-    	curl_setopt($ch,CURLOPT_URL,$url);
-    	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-    	// 4 execute 
-    	$res = curl_exec($ch);
-    	// 5 close curl
-    	curl_close($ch);
-    	
-    	if ( curl_errno($ch) ) {
-    		var_dump(curl_errno($ch));
+    	// put access_token into session/cookie
+    	if ($_SESSION['access_token'] && $_SESSION['expire_time']>time()) {
+    	// // 	// acess_token is not out of date
+    		return $_SESSION['access_token'];
+    	}else{
+	   		// access_token is out of date,reset access_token
+	    	$url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=".$this->appId."&secret=".$this->appSecret;
+	    	$arr = $this->http_curl($url);
+	    	$_SESSION['access_token'] = $arr['access_token'];
+	    	$_SESSION['expire_time'] = time()+7000;
+	    	return $arr['access_token'];
     	}
-    	$arr = json_decode($res,true);
-    	return $arr;
 
     }
 
@@ -217,6 +102,108 @@ class IndexController extends Controller {
     	}
     	$arr = json_decode($res,true);
     	return $arr;
+    }
+
+    public function definedItem() {
+    	// create wechat menu
+    	// get api interface by curl post/get
+    	echo $this->getWxAccessToken();
+    	$url = ' https://api.weixin.qq.com/cgi-bin/menu/create?access_token='.$accessToken;
+    	$postArr = array(
+    			'button'=>array(
+	    			array(
+	    				'name' => urlencode('今日歌曲'),
+	    				'type' => 'click',
+	    				'key'  => 'V1001_TODAY_MUSIC'
+	    			),	// the first menu
+	    			array(
+	    				'name'       => urlencode('菜单'),
+	    				'sub_button' => array(
+	    					array(
+	    						'name' => urlencode('搜索'),
+	    						'type' => 'view',
+	    						'url'  => 'http://www.baidu.com'
+	    					),
+	    					array(
+	    						'name' => 'wxa',
+	    						'type' => 'miniprogram',
+	    						'url'  => 'http://mp.weixin.qq.com',
+	    						'appid'=> 'wx286b93c14bbf93aa',
+	    						'pagepath' => 'pages/lunar/index.html'
+	    					),
+	    					array(
+	    						'name' => urlencode('赞一下我们'),
+	    						'type' => 'click',
+	    						'key'  => 'V1001_GOOD'
+	    					)
+	    				)
+
+	    			),	// the second menu
+	    			array(
+	    				'name' => 'QQ',
+	    				'type' => 'view',
+	    				'url'  => 'http://www.qq.com'
+	    			)	// the third menu
+	    		)
+    		);
+    	echo $postJson = urldecode(json_encode($postArr));
+    	var_dump($res = $this->http_curl($url,'post','json',$postJson));
+    }
+
+    public function getTempQrCode()	{
+    	//1 get ticket
+    	// wechat has four tickets ,including global access_token,web auth access_token,js-SDK jsapi_ticketand qrcode ticket
+    	// temp qrcode
+    	$accessToken = $this->getWxAccessToken();
+    	$url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=".$accessToken;
+    	$postArr = [
+    		'expire_seconds' => 604800, //24*60*60*7
+    		'action_name' => 'QR_SCENE',
+    		'action_info' => [
+    			'scene'=> [
+    				'scene_id'=>2000,
+    			],
+    		],
+    	];
+
+    	$postJson = json_encode($postArr);
+    	$res = $this->http_curl($url,'post','json',$postJson);
+    	$ticket = $res['ticket'];
+
+
+    	// 2 use ticket to get qrcode
+    	$url = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=".urlencode($ticket);
+    	// $res = $this->curl_qrcode($url);
+    	// var_dump($res);
+    	echo "<img src=\"$url\">";
+    }
+
+    public function getPermanentQrcode()
+    {
+    	/**
+    	 * http请求方式: POST	
+    	 * URL: https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=TOKENPOST数据格式：json
+    	 * POST数据例子：{"action_name": "QR_LIMIT_SCENE", "action_info": {"scene": {"scene_id": 123}}}
+    	 * 或者也可以使用以下POST数据创建字符串形式的二维码参数：
+    	 * 	{"action_name": "QR_LIMIT_STR_SCENE", "action_info": {"scene": {"scene_str": "123"}}}
+    	 */
+    	
+    	$accessToken = $this->getWxAccessToken();
+    	$url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=".$accessToken;
+    	$postArr = [
+    		"action_name" => "QR_LIMIT_SCENE",
+    		"action_info" => [
+    			"scene" => [
+    				"scene_id" => 123,
+    			],
+    		],
+    	];
+    	$postJson = json_encode($postArr);
+    	$res = $this->http_curl($url,'post','json',$postJson);
+    	$ticket = $res['ticket'];
+
+    	$url = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=".urlencode($ticket);
+    	echo "<img src='{$url}'>";
     }
 
 
